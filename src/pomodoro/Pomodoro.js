@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import classNames from "../utils/class-names";
 import useInterval from "../utils/useInterval";
 import TimerBar from "./TimerBar";
+import StopButton from "./StopButton";
+import FocusDurationRender from "./FocusDurationRender";
+import BreakDurationRender from "./BreakDurationRender";
 
 // These functions are defined outside of the component to ensure they do not have access to state
 // and are, therefore, more likely to be pure.
@@ -31,16 +34,6 @@ function nextTick(prevState) {
  *  function to update the session state.
  */
 
-//Helper function to convert seconds to hhmmss - adjusted to remove hours
-function convertMS(value) {
-  const sec = parseInt(value, 10); // convert value to number if it's string
-  let minutes = Math.floor((sec/60)); // get minutes
-  let seconds = sec - (minutes * 60); //  get seconds
-  // add 0 if value < 10; Example: 2 => 02
-  if (minutes < 10) {minutes = "0"+minutes;}
-  if (seconds < 10) {seconds = "0"+seconds;}
-  return minutes+':'+seconds; // Return is MM : SS
-}
 
 function nextSession(focusDuration, breakDuration) {
   /**
@@ -61,7 +54,6 @@ function nextSession(focusDuration, breakDuration) {
 }
 
 
-
 function Pomodoro() {
   // Timer starts out paused
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -71,63 +63,10 @@ function Pomodoro() {
   //States for the focus & break durations
   const [focusDuration, setFocusDuration] = useState(1500);
   const [breakDuration, setBreakDuration] = useState(300);
+
   //State that controls disabling the stop button
   const [disableStop, setDisableStop] = useState("true");
-
-  //Button Events
-
-  const decreaseFocusDuration = (event) => {
-    //for decreasing focus time
-    if (session === null) {
-      if (focusDuration > 300) {
-        setFocusDuration((focusDuration - 300))
-      }  else {
-        alert("Focus time must be at least 5 minutes")
-      }
-    }
-  }
-
-  const increaseFocusDuration = (event) => {
-    //for increasing focus time
-    if (session === null) {
-      if (focusDuration < 3600) {
-        setFocusDuration((focusDuration + 300))
-      }  else {
-        alert("Focus time cannot exceed 1 hour")
-      }
-    }
-  }
-
-  const decreaseBreakDuration = (event) => {
-    //for decreasing break time
-    if (session === null) {
-      if (breakDuration > 60) {
-        setBreakDuration((breakDuration - 60))
-      }  else {
-        alert("Break time must be at least 1 minute")
-      }
-    }
-  }
-
-  const increaseBreakDuration = (event) => {
-    //for increasing break time
-    if (session === null) {
-      if (breakDuration < 900) {
-        setBreakDuration((breakDuration + 60))
-      }  else {
-        alert("Break time cannot exceed 15 minutes")
-      }
-    }
-  }
   
-  const handleStopButton = (event) => {
-    if (session !== null) {
-      setIsTimerRunning(false);
-      setSession(null);
-    } 
-  }
-  
-
   /**
    * Custom hook that invokes the callback function every second
    *
@@ -170,62 +109,8 @@ function Pomodoro() {
   return (
     <div className="pomodoro">
       <div className="row">
-        <div className="col">
-          <div className="input-group input-group-lg mb-2">
-            <span className="input-group-text" data-testid="duration-focus">
-              Focus Duration: {convertMS(focusDuration)}
-            </span>
-            <div className="input-group-append">
-              {/* Decrease Focus */}
-              <button
-                type="button"
-                className="btn btn-secondary"
-                data-testid="decrease-focus"
-                onClick={decreaseFocusDuration}
-              >
-                <span className="oi oi-minus" />
-              </button>
-              {/* Increase Focus */}
-              <button
-                type="button"
-                className="btn btn-secondary"
-                data-testid="increase-focus"
-                onClick={increaseFocusDuration}
-              >
-                <span className="oi oi-plus" />
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="col">
-          <div className="float-right">
-            <div className="input-group input-group-lg mb-2">
-              <span className="input-group-text" data-testid="duration-break">
-                Break Duration: {convertMS(breakDuration)}
-              </span>
-              <div className="input-group-append">
-                {/* Decrease Break */}
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  data-testid="decrease-break"
-                  onClick={decreaseBreakDuration}
-                >
-                  <span className="oi oi-minus" />
-                </button>
-                {/* Increase Break */}
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  data-testid="increase-break"
-                  onClick={increaseBreakDuration}
-                >
-                  <span className="oi oi-plus" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <FocusDurationRender focusDuration={focusDuration} setFocusDuration={setFocusDuration} session={session}/>
+        <BreakDurationRender breakDuration={breakDuration} setBreakDuration={setBreakDuration} session={session}/>
       </div>
       <div className="row">
         <div className="col">
@@ -249,17 +134,7 @@ function Pomodoro() {
                 })}
               />
             </button>
-            {/* Stop Button */}
-            <button
-              type="button"
-              className="btn btn-secondary"
-              data-testid="stop"
-              title="Stop the session"
-              onClick={handleStopButton}
-              disabled={disableStop}
-            >
-              <span className="oi oi-media-stop" />
-            </button>
+            <StopButton setIsTimerRunning={setIsTimerRunning} setSession={setSession} session={session} disableStop={disableStop}/>
           </div>
         </div>
       </div>
